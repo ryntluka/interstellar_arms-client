@@ -1,6 +1,7 @@
 package cz.cvut.fit.ryntluka.dto;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ProductCreateDTO {
 
@@ -24,5 +25,23 @@ public class ProductCreateDTO {
 
     public List<Integer> getOrdersIds() {
         return ordersIds;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(price, name, ordersIds);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        ProductCreateDTO product = (ProductCreateDTO) obj;
+        return Objects.equals(price, product.price)
+                && Objects.equals(name, product.name)
+                && (Objects.equals(ordersIds, product.ordersIds)
+                || ordersIds.isEmpty() && product.ordersIds == null);
     }
 }

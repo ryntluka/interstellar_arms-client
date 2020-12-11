@@ -1,25 +1,29 @@
 package cz.cvut.fit.ryntluka.dto;
 
+import com.sun.istack.NotNull;
+import cz.cvut.fit.ryntluka.entity.Planet;
+import org.springframework.hateoas.RepresentationModel;
+
+import javax.persistence.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class PlanetDTO {
+public class PlanetDTO extends RepresentationModel<PlanetDTO>  {
 
     private final int id;
     private final String name;
     private final Point coordinate;
     private final String territory;
     private final String nativeRace;
-    private final List<Integer> inhabitantsIds;
 
-    public PlanetDTO(int id, String name, Point coordinate, String territory, String nativeRace, List<Integer> inhabitantsIds) {
+    public PlanetDTO(int id, String name, Point coordinate, String territory, String nativeRace) {
         this.id = id;
         this.name = name;
         this.coordinate = coordinate;
         this.territory = territory;
         this.nativeRace = nativeRace;
-        this.inhabitantsIds = inhabitantsIds;
     }
 
     public int getId() {
@@ -42,13 +46,9 @@ public class PlanetDTO {
         return nativeRace;
     }
 
-    public List<Integer> getInhabitantsIds() {
-        return inhabitantsIds;
-    }
-
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, coordinate, territory, nativeRace, inhabitantsIds);
+        return Objects.hash(id, name, coordinate, territory, nativeRace);
     }
 
     @Override
@@ -62,7 +62,6 @@ public class PlanetDTO {
                 && Objects.equals(name, planet.name)
                 && Objects.equals(coordinate, planet.coordinate)
                 && Objects.equals(territory, planet.territory)
-                && Objects.equals(nativeRace, planet.nativeRace)
-                && Objects.equals(inhabitantsIds, planet.inhabitantsIds);
+                && Objects.equals(nativeRace, planet.nativeRace);
     }
 }

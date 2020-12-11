@@ -10,14 +10,16 @@ public class CustomerDTO extends RepresentationModel<CustomerDTO> {
     private final String firstName;
     private final String lastName;
     private final String email;
+    private final int planetId;
 
-    public CustomerDTO(int id, String firstName, String lastName, String email)
+    public CustomerDTO(int id, String firstName, String lastName, String email, int planetId)
 
     {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
+        this.planetId = planetId;
     }
 
     public int getId() {
@@ -34,6 +36,10 @@ public class CustomerDTO extends RepresentationModel<CustomerDTO> {
 
     public String getEmail() {
         return email;
+    }
+
+    public int getPlanetId() {
+        return planetId;
     }
 
     @Override

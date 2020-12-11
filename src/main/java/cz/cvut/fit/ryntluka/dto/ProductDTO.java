@@ -1,9 +1,11 @@
 package cz.cvut.fit.ryntluka.dto;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import java.util.List;
 import java.util.Objects;
 
-public class ProductDTO {
+public class ProductDTO extends RepresentationModel<ProductDTO>  {
 
     private final int id;
     private final int price;
@@ -48,6 +50,7 @@ public class ProductDTO {
         return id == product.id
                 && Objects.equals(price, product.price)
                 && Objects.equals(name, product.name)
-                && Objects.equals(ordersIds, product.ordersIds);
+                && (Objects.equals(ordersIds, product.ordersIds)
+                || ordersIds.isEmpty() && product.ordersIds == null);
     }
 }
