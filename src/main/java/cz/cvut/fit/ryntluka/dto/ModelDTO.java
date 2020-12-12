@@ -1,2 +1,5 @@
-package cz.cvut.fit.ryntluka.dto;public class ModelDTO {
+package cz.cvut.fit.ryntluka.dto;
+
+public interface ModelDTO {
+    int getId();
 }

@@ -1,57 +1,89 @@
 package cz.cvut.fit.ryntluka.resource;
 
 import cz.cvut.fit.ryntluka.dto.CustomerDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import cz.cvut.fit.ryntluka.dto.PlanetCreateDTO;
+import cz.cvut.fit.ryntluka.dto.PlanetDTO;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 @Component
-public class CustomerResource {
+public class PlanetResource implements Resource<PlanetDTO, PlanetCreateDTO> {
 
     private final RestTemplate restTemplate;
 
-    private static final String ROOT_RESOURCE_URL = "http://localhost:8080/api/customers";
+    private static final String ROOT_RESOURCE_URL = "http://localhost:8080/api/planets";
     private static final String ONE_URI = "/{id}";
-    private final static String CONTENT_TYPE = "application/vnd-customers+json";
+    private final static String CONTENT_TYPE = "application/vnd-planets+json";
     HttpHeaders headers;
 
 
-    public CustomerResource(RestTemplateBuilder restTemplateBuilder) {
+    public PlanetResource(RestTemplateBuilder restTemplateBuilder) {
         restTemplate = restTemplateBuilder.rootUri(ROOT_RESOURCE_URL).build();
         headers = new HttpHeaders();
         headers.setContentType(MediaType.valueOf(CONTENT_TYPE));
     }
 
-    public URI create(CustomerDTO data) {
-        return restTemplate.postForLocation("/", data);
+    public void create(PlanetCreateDTO data) {
+        restTemplate.exchange("/",
+                HttpMethod.POST,
+                new HttpEntity<>(data, headers),
+                new ParameterizedTypeReference<>() {}
+        );
     }
 
-    public CustomerDTO findById(int id) {
-        ResponseEntity<CustomerDTO> result = restTemplate.exchange("/" + id,
+    public void update(PlanetCreateDTO data, int id) {
+        restTemplate.exchange("/" + id,
+                HttpMethod.PUT,
+                new HttpEntity<>(data, headers),
+                new ParameterizedTypeReference<>() {}
+        );
+    }
+
+
+    public PlanetDTO findById(int id) {
+        ResponseEntity<PlanetDTO> result = restTemplate.exchange("/" + id,
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
-                new ParameterizedTypeReference<CustomerDTO>(){}
+                new ParameterizedTypeReference<>() {
+                }
         );
         return result.getBody();
     }
 
-    public List<CustomerDTO> findAll() {
-        ResponseEntity<List<CustomerDTO>> result = restTemplate.exchange("/",
+    public List<PlanetDTO> findByName(String name) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(ROOT_RESOURCE_URL)
+                .queryParam("name", name);
+        ResponseEntity<List<PlanetDTO>> result = restTemplate.exchange(
+                builder.toUriString(),
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
-                new ParameterizedTypeReference<List<CustomerDTO>>(){}
+                new ParameterizedTypeReference<>() {
+                }
         );
         return result.getBody();
     }
 
-    public int count() {
-        return 50;  //TODO
+    public List<PlanetDTO> findAll() {
+        ResponseEntity<List<PlanetDTO>> result = restTemplate.exchange("/",
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                new ParameterizedTypeReference<>() {
+                }
+        );
+        return result.getBody();
+    }
+
+    public void delete(int id) {
+        restTemplate.exchange("/" + id,
+                HttpMethod.DELETE,
+                new HttpEntity<>(headers),
+                new ParameterizedTypeReference<PlanetDTO>(){}
+        );
     }
 }

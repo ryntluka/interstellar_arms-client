@@ -1,10 +1,10 @@
 package cz.cvut.fit.ryntluka.ui.events;
 
-import cz.cvut.fit.ryntluka.dto.CustomerDTO;
-import cz.cvut.fit.ryntluka.ui.views.form.CustomerForm;
+import cz.cvut.fit.ryntluka.dto.ModelDTO;
+import cz.cvut.fit.ryntluka.ui.form.FormComponent;
 
-public class UpdateEvent extends FormEvent {
-    public UpdateEvent(CustomerForm source, CustomerDTO entity) {
+public class SaveEvent extends FormEvent {
+    public SaveEvent(FormComponent source, ModelDTO entity) {
         super(source, entity);
     }
 }

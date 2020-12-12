@@ -5,7 +5,7 @@ import org.springframework.hateoas.RepresentationModel;
 import java.util.List;
 import java.util.Objects;
 
-public class ProductDTO extends RepresentationModel<ProductDTO>  {
+public class ProductDTO extends RepresentationModel<ProductDTO> implements ModelDTO {
 
     private final int id;
     private final int price;

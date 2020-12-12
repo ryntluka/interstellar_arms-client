@@ -1,24 +1,24 @@
-package cz.cvut.fit.ryntluka;
+package cz.cvut.fit.ryntluka.resource;
 
+import cz.cvut.fit.ryntluka.dto.CustomerCreateDTO;
 import cz.cvut.fit.ryntluka.dto.CustomerDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import cz.cvut.fit.ryntluka.dto.ModelCreateDTO;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 @Component
-public class CustomerResource {
+public class CustomerResource implements Resource<CustomerDTO, CustomerCreateDTO> {
 
     private final RestTemplate restTemplate;
 
     private static final String ROOT_RESOURCE_URL = "http://localhost:8080/api/customers";
-    private static final String ONE_URI = "/{id}";
     private final static String CONTENT_TYPE = "application/vnd-customers+json";
     HttpHeaders headers;
 
@@ -29,15 +29,42 @@ public class CustomerResource {
         headers.setContentType(MediaType.valueOf(CONTENT_TYPE));
     }
 
-    public URI create(CustomerDTO data) {
-        return restTemplate.postForLocation("/", data);
+    public void create(CustomerCreateDTO data) {
+        restTemplate.exchange("/",
+                HttpMethod.POST,
+                new HttpEntity<>(data, headers),
+                new ParameterizedTypeReference<>() {}
+        );
     }
+
+    public void update(CustomerCreateDTO data, int id) {
+        restTemplate.exchange("/" + id,
+                HttpMethod.PUT,
+                new HttpEntity<>(data, headers),
+                new ParameterizedTypeReference<>() {}
+        );
+    }
+
 
     public CustomerDTO findById(int id) {
         ResponseEntity<CustomerDTO> result = restTemplate.exchange("/" + id,
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
-                new ParameterizedTypeReference<CustomerDTO>(){}
+                new ParameterizedTypeReference<>() {
+                }
+        );
+        return result.getBody();
+    }
+
+    public List<CustomerDTO> findByName(String name) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(ROOT_RESOURCE_URL)
+                .queryParam("name", name);
+        ResponseEntity<List<CustomerDTO>> result = restTemplate.exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                new ParameterizedTypeReference<>() {
+                }
         );
         return result.getBody();
     }
@@ -46,12 +73,17 @@ public class CustomerResource {
         ResponseEntity<List<CustomerDTO>> result = restTemplate.exchange("/",
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
-                new ParameterizedTypeReference<List<CustomerDTO>>(){}
+                new ParameterizedTypeReference<>() {
+                }
         );
         return result.getBody();
     }
 
-    public int count() {
-        return 50;  //TODO
+    public void delete(int id) {
+        restTemplate.exchange("/" + id,
+                HttpMethod.DELETE,
+                new HttpEntity<>(headers),
+                new ParameterizedTypeReference<CustomerDTO>(){}
+        );
     }
 }

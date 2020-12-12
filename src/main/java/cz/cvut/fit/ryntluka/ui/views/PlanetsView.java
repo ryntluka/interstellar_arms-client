@@ -13,47 +13,38 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import cz.cvut.fit.ryntluka.dto.PlanetDTO;
-import cz.cvut.fit.ryntluka.resource.CustomerResource;
-import cz.cvut.fit.ryntluka.dto.CustomerDTO;
+import cz.cvut.fit.ryntluka.dto.*;
 import cz.cvut.fit.ryntluka.resource.PlanetResource;
 import cz.cvut.fit.ryntluka.ui.MainLayout;
 import cz.cvut.fit.ryntluka.ui.events.CloseEvent;
 import cz.cvut.fit.ryntluka.ui.events.DeleteEvent;
 import cz.cvut.fit.ryntluka.ui.events.SaveEvent;
-import cz.cvut.fit.ryntluka.ui.views.form.CustomerCreateForm;
-import cz.cvut.fit.ryntluka.ui.views.form.CustomerUpdateForm;
+import cz.cvut.fit.ryntluka.ui.form.planet.PlanetCreateForm;
+import cz.cvut.fit.ryntluka.ui.form.planet.PlanetUpdateForm;
+import cz.cvut.fit.ryntluka.ui.form.planet.PlanetCreateForm;
+import cz.cvut.fit.ryntluka.ui.form.planet.PlanetUpdateForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.awt.*;
 import java.util.List;
 
-import static cz.cvut.fit.ryntluka.dto.CustomerCreateDTO.toCreateDTO;
+import static cz.cvut.fit.ryntluka.dto.PlanetCreateDTO.toCreateDTO;
 
-@Route(value = "", layout = MainLayout.class)
+@Route(value = "planets", layout = MainLayout.class)
 @CssImport("./styles/shared-styles.css")
-@PageTitle("Customers | Interstelar Arms Corporation")
-public class CustomersView extends VerticalLayout {
+@PageTitle("Planets | Interstelar Arms Corporation")
+public class PlanetsView extends View<PlanetDTO, PlanetCreateDTO> {
 
-    private final CustomerUpdateForm updateForm;
-    private final CustomerCreateForm createForm;
-    Grid<CustomerDTO> grid = new Grid<>(CustomerDTO.class);
+    private final PlanetUpdateForm updateForm;
+    private final PlanetCreateForm createForm;
+    Grid<PlanetDTO> grid = new Grid<>(PlanetDTO.class);
 
-    private final CustomerResource customerResource;
-    private final PlanetResource planetResource;
+    public PlanetsView(@Autowired PlanetResource planetResource) {
+        super(planetResource);
+        updateForm = new PlanetUpdateForm();
+        createForm = new PlanetCreateForm();
 
-    TextField filterName = new TextField();
-    TextField filterId = new TextField();
-
-    public CustomersView(@Autowired CustomerResource customerResource, PlanetResource planetResource) {
-        this.customerResource = customerResource;
-        this.planetResource = planetResource;
-        updateForm = new CustomerUpdateForm(planetResource.findAll());
-        createForm = new CustomerCreateForm(planetResource.findAll());
-
-        addClassName("list-view");
-        setSizeFull();
         configureGrid();
 
         configureForms();
@@ -63,154 +54,79 @@ public class CustomersView extends VerticalLayout {
         content.setSizeFull();
 
         add(createToolBar(), content);
-        updateList();
         closeUpdateEditor();
         closeCreateEditor();
+        updateList();
     }
 
     private void configureForms() {
-        updateForm.addListener(SaveEvent.class, this::editCustomer);
-        updateForm.addListener(DeleteEvent.class, this::deleteCustomer);
+        updateForm.addListener(SaveEvent.class, this::editEntity);
+        updateForm.addListener(DeleteEvent.class, this::deleteEntity);
         updateForm.addListener(CloseEvent.class, e -> closeUpdateEditor());
 
-        createForm.addListener(SaveEvent.class, this::createCustomer);
+        createForm.addListener(SaveEvent.class, this::createEntity);
         createForm.addListener(CloseEvent.class, e -> closeCreateEditor());
     }
 
-    private Component createToolBar() {
-        Button addCustomer = new Button("Add contact", click -> {
-            closeUpdateEditor();
-            addCustomer();
-        });
-        HorizontalLayout toolbar = new HorizontalLayout(createFilters(), addCustomer);
-        toolbar.addClassName("toolbar");
-        toolbar.setAlignItems(Alignment.CENTER);
-        return toolbar;
-    }
-
-    private void createCustomer(SaveEvent evt) {
-        customerResource.create(toCreateDTO(evt.getEntity()));
-        updateList();
-        closeCreateEditor();
-    }
-
-    private void deleteCustomer(DeleteEvent evt) {
-        customerResource.delete(evt.getEntity().getId());
-        updateList();
-        closeUpdateEditor();
-    }
-
-    private void editCustomer(SaveEvent evt) {
-        customerResource.update(toCreateDTO(evt.getEntity()), evt.getEntity().getId());
-        updateList();
-        closeUpdateEditor();
-    }
-
-    private void closeUpdateEditor() {
-        updateForm.setCustomer(
-                new CustomerDTO(0, "", "", "", 0),
+    protected void closeUpdateEditor() {
+        updateForm.setPlanet(
                 new PlanetDTO(0, "", new Point(0,0), "", ""));
         updateForm.setVisible(false);
         removeClassName("editing");
     }
 
-    private void closeCreateEditor() {
-        createForm.setCustomer(
-                new CustomerDTO(0, "", "", "", 0),
+    protected void closeCreateEditor() {
+        createForm.setPlanet(
                 new PlanetDTO(0, "", new Point(0,0), "", ""));
         createForm.setVisible(false);
         removeClassName("editing");
     }
 
-    private VerticalLayout createFilters() {
-        VerticalLayout verticalLayout = new VerticalLayout(createNameFilter(), createIdFilter());
-
-        Button resetFilters = new Button("Reset");
-        resetFilters.addClickListener(e-> {
-            updateList();
-            filterName.setValue("");
-            filterId.setValue("");
-        });
-        resetFilters.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        resetFilters.addClickShortcut(Key.ESCAPE);
-
-        verticalLayout.add(resetFilters);
-        return verticalLayout;
-    }
-
-    private HorizontalLayout createNameFilter() {
-        filterName.setPlaceholder("Find by name...");
-        filterName.setClearButtonVisible(true);
-
-        Button apply = new Button("Find");
-        apply.addThemeVariants(ButtonVariant.LUMO_ICON);
-        apply.addClickListener(e-> {
-            String name = filterName.getValue();
-            try {
-                grid.setItems(customerResource.findByName(name));
-            }
-            catch (HttpClientErrorException.NotFound ex) {
-                grid.setItems(List.of());
-                Notification.show("Customer not found!");
-            }
-        });
-        return new HorizontalLayout(filterName, apply);
-    }
-
-    private HorizontalLayout createIdFilter() {
-        filterId.setPlaceholder("Find by id...");
-        filterId.setClearButtonVisible(true);
-
-        Button apply = new Button("Find");
-        apply.addThemeVariants(ButtonVariant.LUMO_ICON);
-        apply.addClickListener(e -> {
-            try {
-                int id = Integer.parseInt(filterId.getValue());
-                grid.setItems(customerResource.findById(id));
-            }
-            catch (NumberFormatException ex) {
-                grid.setItems(List.of());
-                Notification.show("Invalid input format!");
-            }
-            catch (HttpClientErrorException.NotFound ex) {
-                grid.setItems(List.of());
-                Notification.show("Customer not found!");
-            }
-        });
-        return new HorizontalLayout(filterId, apply);
-    }
-
-    private void updateList() {
-        grid.setItems(customerResource.findAll());
-    }
-
     private void configureGrid() {
-        grid.addClassName("customer-grid");
+        grid.addClassName("planet-grid");
         grid.setSizeFull();
-        grid.setColumns("id", "firstName", "lastName", "email");
-        grid.addColumn(c->planetResource.findById(c.getPlanetId()).getName()).setHeader("Planet");
+        grid.setColumns("id", "name", "territory", "nativeRace");
+        grid.addColumn(c-> (int)c.getCoordinate().getX() + ", " + (int)c.getCoordinate().getY()).setHeader("Coordinate");
 
         grid.getColumns().forEach(col->col.setAutoWidth(true));
 
-        grid.asSingleSelect().addValueChangeListener(event -> updateCustomer(event.getValue()));
+        grid.asSingleSelect().addValueChangeListener(event -> updatePlanet(event.getValue()));
     }
 
-    private void addCustomer() {
+    protected void addEntity() {
         grid.asSingleSelect().clear();
         createForm.setVisible(true);
         addClassName("editing");
     }
 
-    private void updateCustomer(CustomerDTO customer) {
+    private void updatePlanet(PlanetDTO planet) {
         closeCreateEditor();
-        if (customer == null)
+        if (planet == null)
             closeUpdateEditor();
         else {
-            updateForm.setCustomer(customer, planetResource.findById(customer.getPlanetId()));
+            updateForm.setPlanet(planet);
             updateForm.setVisible(true);
             addClassName("editing");
         }
     }
 
+    @Override
+    void setGridItems(List<PlanetDTO> items) {
+        grid.setItems(items);
+    }
 
+    @Override
+    void setGridItems(PlanetDTO item) {
+        grid.setItems(item);
+    }
+
+    @Override
+    PlanetCreateDTO getCreateDTO(ModelDTO entity) {
+        return toCreateDTO((PlanetDTO) entity);
+    }
+
+    @Override
+    String getName() {
+        return "planet";
+    }
 }

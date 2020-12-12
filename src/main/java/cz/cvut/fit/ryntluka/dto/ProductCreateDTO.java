@@ -3,7 +3,7 @@ package cz.cvut.fit.ryntluka.dto;
 import java.util.List;
 import java.util.Objects;
 
-public class ProductCreateDTO {
+public class ProductCreateDTO implements ModelCreateDTO {
 
     private final int price;
     private final String name;
@@ -43,5 +43,9 @@ public class ProductCreateDTO {
                 && Objects.equals(name, product.name)
                 && (Objects.equals(ordersIds, product.ordersIds)
                 || ordersIds.isEmpty() && product.ordersIds == null);
+    }
+
+    public static ProductCreateDTO toCreateDTO(ProductDTO productDTO) {
+        return new ProductCreateDTO(productDTO.getPrice(), productDTO.getName(), productDTO.getOrdersIds());
     }
 }

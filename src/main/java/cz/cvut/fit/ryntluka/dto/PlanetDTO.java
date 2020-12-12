@@ -1,16 +1,11 @@
 package cz.cvut.fit.ryntluka.dto;
 
-import com.sun.istack.NotNull;
-import cz.cvut.fit.ryntluka.entity.Planet;
 import org.springframework.hateoas.RepresentationModel;
 
-import javax.persistence.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
-public class PlanetDTO extends RepresentationModel<PlanetDTO>  {
+public class PlanetDTO extends RepresentationModel<PlanetDTO> implements ModelDTO {
 
     private final int id;
     private final String name;

@@ -1,10 +1,9 @@
 package cz.cvut.fit.ryntluka.dto;
 
 import java.awt.*;
-import java.util.List;
 import java.util.Objects;
 
-public class PlanetCreateDTO {
+public class PlanetCreateDTO implements ModelCreateDTO {
 
     private final String name;
     private final Point coordinate;
@@ -50,5 +49,9 @@ public class PlanetCreateDTO {
                 && Objects.equals(coordinate, planet.coordinate)
                 && Objects.equals(territory, planet.territory)
                 && Objects.equals(nativeRace, planet.nativeRace);
+    }
+
+    public static PlanetCreateDTO toCreateDTO(PlanetDTO planetDTO) {
+        return new PlanetCreateDTO(planetDTO.getName(), planetDTO.getCoordinate(), planetDTO.getTerritory(), planetDTO.getNativeRace());
     }
 }

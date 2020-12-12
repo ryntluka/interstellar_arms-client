@@ -4,7 +4,8 @@ import org.springframework.hateoas.RepresentationModel;
 
 import java.util.Objects;
 
-public class CustomerDTO extends RepresentationModel<CustomerDTO> {
+
+public class CustomerDTO extends RepresentationModel<CustomerDTO> implements ModelDTO {
 
     private final int id;
     private final String firstName;

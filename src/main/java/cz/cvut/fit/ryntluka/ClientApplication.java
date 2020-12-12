@@ -12,9 +12,7 @@ import org.springframework.hateoas.config.HypermediaRestTemplateConfigurer;
 
 @SpringBootApplication
 @EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
-public class ClientApplication implements ApplicationRunner {
-    @Autowired
-    private CustomerResource customerResource;
+public class ClientApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ClientApplication.class, args);
@@ -23,13 +21,5 @@ public class ClientApplication implements ApplicationRunner {
     @Bean
     RestTemplateCustomizer customizer(HypermediaRestTemplateConfigurer c) {
         return restTemplate -> {c.registerHypermediaTypes(restTemplate);};
-    }
-
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
-        if (args.getOptionValues("app.action") != null
-            && args.getOptionValues("app.entity").contains("customer")){
-
-        }
     }
 }

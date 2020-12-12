@@ -1,2 +1,4 @@
-package cz.cvut.fit.ryntluka.dto;public interface ModelCreateDTO {
+package cz.cvut.fit.ryntluka.dto;
+
+public interface ModelCreateDTO {
 }

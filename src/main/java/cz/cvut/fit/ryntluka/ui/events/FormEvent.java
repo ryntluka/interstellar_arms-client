@@ -1,19 +1,18 @@
 package cz.cvut.fit.ryntluka.ui.events;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
-import cz.cvut.fit.ryntluka.dto.CustomerDTO;
-import cz.cvut.fit.ryntluka.ui.views.CustomerForm;
+import cz.cvut.fit.ryntluka.dto.ModelDTO;
+import cz.cvut.fit.ryntluka.ui.form.FormComponent;
 
-public abstract class FormEvent<Type, Form extends Component> extends ComponentEvent<Form> {
-    private final Type entity;
+public abstract class FormEvent extends ComponentEvent<FormComponent> {
+    private final ModelDTO entity;
 
-    protected FormEvent(Form source, Type entity) {
+    protected FormEvent(FormComponent source, ModelDTO entity) {
         super(source, false);
         this.entity = entity;
     }
 
-    public Type getEntity() {
+    public ModelDTO getEntity() {
         return entity;
     }
 }

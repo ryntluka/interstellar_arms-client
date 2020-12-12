@@ -2,7 +2,7 @@ package cz.cvut.fit.ryntluka.dto;
 
 import java.util.Objects;
 
-public class CustomerCreateDTO {
+public class CustomerCreateDTO implements ModelCreateDTO {
 
     private final String firstName;
     private final String lastName;
@@ -48,5 +48,9 @@ public class CustomerCreateDTO {
                 && Objects.equals(lastName, customer.lastName)
                 && Objects.equals(email, customer.email)
                 && Objects.equals(planetId, customer.planetId);
+    }
+
+    public static CustomerCreateDTO toCreateDTO(CustomerDTO customerDTO) {
+        return new CustomerCreateDTO(customerDTO.getFirstName(), customerDTO.getLastName(), customerDTO.getEmail(), customerDTO.getPlanetId());
     }
 }
