@@ -15,21 +15,29 @@ public class OrderForm extends FormComponent<OrderDTO> {
     protected ComboBox<ProductDTO> product = new ComboBox<>("Product");
 
     protected OrderDTO getEntity() {
+        if (customer.isEmpty() || product.isEmpty())
+            throw new IllegalArgumentException();
         return new OrderDTO(customer.getValue().getId(), product.getValue().getId());
     }
 
     public OrderForm(List<CustomerDTO> customers, List<ProductDTO> products) {
         addClassName("contact-form");
-        delete.setVisible(false);
         customer.setItems(customers);
         customer.setItemLabelGenerator(c -> c.getFirstName() + " " + c.getLastName());
+        customer.setAllowCustomValue(false);
         product.setItems(products);
         product.setItemLabelGenerator(ProductDTO::getName);
+        product.setAllowCustomValue(false);
 
         add(
                 customer,
                 product,
                 createButtonsLayout()
         );
+    }
+
+    public void update(List<CustomerDTO> customers, List<ProductDTO> products) {
+        customer.setItems(customers);
+        product.setItems(products);
     }
 }

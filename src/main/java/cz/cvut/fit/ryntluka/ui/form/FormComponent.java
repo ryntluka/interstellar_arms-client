@@ -7,7 +7,9 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.shared.Registration;
 import cz.cvut.fit.ryntluka.dto.ModelDTO;
 import cz.cvut.fit.ryntluka.ui.events.CloseEvent;
@@ -30,16 +32,33 @@ public abstract class FormComponent<DTO extends ModelDTO> extends FormLayout {
         delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
         close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        save.addClickShortcut(Key.ENTER);
-        close.addClickShortcut(Key.ESCAPE);
+        save.addClickShortcut(Key.ENTER).listenOn(this);
+        close.addClickShortcut(Key.ESCAPE).listenOn(this);
 
-        close.addClickListener(click->fireEvent(new CloseEvent(this)));
-        save.addClickListener(click -> fireEvent(new SaveEvent(this, getEntity())));
-        delete.addClickListener(click -> fireEvent(new DeleteEvent(this, getEntity())));
+        close.addClickListener(click-> fireEvent(new CloseEvent(this)));
+        save.addClickListener(click -> {
+            try {
+                fireEvent(new SaveEvent(this, getEntity()));
+            } catch (IllegalArgumentException e) {
+                Notification.show("Form filled incorrectly.");
+            }
+        });
+        delete.addClickListener(click -> {
+            try {
+                fireEvent(new DeleteEvent(this, getEntity()));
+            } catch (IllegalArgumentException e) {
+                Notification.show("Form filled incorrectly.");
+        }
+        });
 
-        return new HorizontalLayout(save, delete, close);
+        close.setSizeFull();
+        save.setSizeFull();
+        delete.setSizeFull();
+
+        VerticalLayout verticalLayout = new VerticalLayout(save, delete, close);
+        verticalLayout.setSizeFull();
+        return verticalLayout;
     }
 
     protected abstract DTO getEntity();
-//    protected abstract void setEntity(DTO dto);
 }

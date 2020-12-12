@@ -23,6 +23,7 @@ public class CustomerCreateForm extends CreateForm<CustomerDTO> {
         addClassName("contact-form");
         planet.setItems(planets);
         planet.setItemLabelGenerator(PlanetDTO::getName);
+        planet.setAllowCustomValue(false);
         id.setReadOnly(true);
 
         add(
@@ -37,18 +38,10 @@ public class CustomerCreateForm extends CreateForm<CustomerDTO> {
 
     @Override
     protected CustomerDTO getEntity() {
-        return new CustomerDTO(Integer.parseInt(id.getValue()),
-                firstName.getValue(),
-                lastName.getValue(),
-                email.getValue(),
-                planet.getValue().getId());
+        return CustomerHelperForm.getCustomer(id, firstName, lastName, email, planet);
     }
 
     public void setCustomer(CustomerDTO customer, PlanetDTO planetAddress) {
-        id.setValue(Integer.toString(customer.getId()));
-        firstName.setValue(customer.getFirstName());
-        lastName.setValue(customer.getLastName());
-        email.setValue(customer.getEmail());
-        planet.setValue(planetAddress);
+        CustomerHelperForm.setCustomer(customer, planetAddress, id, firstName, lastName, email, planet);
     }
 }

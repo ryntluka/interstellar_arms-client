@@ -96,4 +96,16 @@ public class ProductResource implements Resource<ProductDTO, ProductCreateDTO> {
                 }
         );
     }
+
+    public void removeOrder(int customerId, int productId) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(ROOT_RESOURCE_URL + "/" + productId)
+                .queryParam("customerId", customerId);
+        restTemplate.exchange(
+                builder.toUriString(),
+                HttpMethod.DELETE,
+                new HttpEntity<>(headers),
+                new ParameterizedTypeReference<>() {
+                }
+        );
+    }
 }

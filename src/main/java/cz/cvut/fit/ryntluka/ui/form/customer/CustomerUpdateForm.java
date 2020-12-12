@@ -54,10 +54,6 @@ public class CustomerUpdateForm extends UpdateForm<CustomerDTO> {
     }
 
     public void setCustomer(CustomerDTO customer, PlanetDTO planetAddress) {
-        id.setValue(Integer.toString(customer.getId()));
-        firstName.setValue(customer.getFirstName());
-        lastName.setValue(customer.getLastName());
-        email.setValue(customer.getEmail());
-        planet.setValue(planetAddress);
+        CustomerHelperForm.setCustomer(customer, planetAddress, id, firstName, lastName, email, planet);
     }
 }

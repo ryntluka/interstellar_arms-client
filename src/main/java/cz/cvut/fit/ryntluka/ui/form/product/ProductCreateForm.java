@@ -21,22 +21,17 @@ public class ProductCreateForm extends FormComponent<ProductDTO> {
 
         add(
                 id,
-                price,
                 name,
+                price,
                 createButtonsLayout()
         );
     }
 
     protected ProductDTO getEntity() {
-        return new ProductDTO(Integer.parseInt(id.getValue()),
-                Integer.parseInt(price.getValue()),
-                name.getValue(),
-                List.of());
+        return ProductHelperForm.getEntity(id, price, name);
     }
 
     public void setProduct(ProductDTO product) {
-        id.setValue(Integer.toString(product.getId()));
-        price.setValue(Integer.toString(product.getPrice()));
-        name.setValue(product.getName());
+        ProductHelperForm.setProduct(product, id, price, name);
     }
 }

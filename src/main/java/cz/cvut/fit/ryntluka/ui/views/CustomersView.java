@@ -24,7 +24,7 @@ import java.util.List;
 
 import static cz.cvut.fit.ryntluka.dto.CustomerCreateDTO.toCreateDTO;
 
-@Route(value = "customers", layout = MainLayout.class)
+@Route(value = "", layout = MainLayout.class)
 @CssImport("./styles/shared-styles.css")
 @PageTitle("Customers | Interstelar Arms Corporation")
 public class CustomersView extends View<CustomerDTO, CustomerCreateDTO> {

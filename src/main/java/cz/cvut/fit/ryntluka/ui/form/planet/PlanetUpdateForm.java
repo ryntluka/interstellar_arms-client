@@ -32,19 +32,10 @@ public class PlanetUpdateForm extends UpdateForm<PlanetDTO> {
     }
 
     protected PlanetDTO getEntity() {
-        return new PlanetDTO(Integer.parseInt(id.getValue()),
-                name.getValue(),
-                new Point(Integer.parseInt(coordinate_x.getValue()), Integer.parseInt(coordinate_y.getValue())),
-                territory.getValue(),
-                nativeRace.getValue());
+        return PlanetHelperForm.getPlanet(id, name, coordinate_x, coordinate_y, territory, nativeRace);
     }
 
     public void setPlanet(PlanetDTO planet) {
-        id.setValue(Integer.toString(planet.getId()));
-        name.setValue(planet.getName());
-        coordinate_x.setValue(Integer.toString((int)planet.getCoordinate().getX()));
-        coordinate_y.setValue(Integer.toString((int)planet.getCoordinate().getY()));
-        territory.setValue(planet.getTerritory());
-        nativeRace.setValue(planet.getNativeRace());
+        PlanetHelperForm.setPlanet(planet, id, name, coordinate_x, coordinate_y, territory, nativeRace);
     }
 }

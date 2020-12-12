@@ -24,10 +24,13 @@ import cz.cvut.fit.ryntluka.ui.events.SaveEvent;
 import cz.cvut.fit.ryntluka.ui.form.product.OrderForm;
 import cz.cvut.fit.ryntluka.ui.form.product.ProductCreateForm;
 import cz.cvut.fit.ryntluka.ui.form.product.ProductUpdateForm;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cz.cvut.fit.ryntluka.dto.ProductCreateDTO.toCreateDTO;
@@ -60,7 +63,15 @@ public class ProductView extends View<ProductDTO, ProductCreateDTO> {
         content.setSizeFull();
 
         HorizontalLayout toolBar = createToolBar();
-        Button order = new Button("Order", e -> openOrder());
+        Button order = new Button("Order", e -> {
+            orderForm.update(customerResource.findAll(), getMainResource().findAll());
+            openOrder();
+        });
+        addEntity.addClickListener(click -> {
+            closeUpdateEditor();
+            closeOrderEditor();
+            addEntity();
+        });
         order.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         toolBar.add(order);
 
@@ -80,7 +91,11 @@ public class ProductView extends View<ProductDTO, ProductCreateDTO> {
         createForm.addListener(CloseEvent.class, e -> closeCreateEditor());
 
         orderForm.addListener(SaveEvent.class, this::orderProduct);
+        orderForm.addListener(DeleteEvent.class, this::removeOrder);
+        orderForm.addListener(CloseEvent.class, e -> closeOrderEditor());
     }
+
+
 
     private void openOrder() {
         closeCreateEditor();
@@ -88,6 +103,16 @@ public class ProductView extends View<ProductDTO, ProductCreateDTO> {
         grid.asSingleSelect().clear();
         orderForm.setVisible(true);
         addClassName("editing");
+    }
+
+    private void removeOrder(DeleteEvent evt) {
+        OrderDTO orderDTO = (OrderDTO) evt.getEntity();
+        try {
+            ((ProductResource) getMainResource()).removeOrder(orderDTO.getCustomerId(), orderDTO.getProductId());
+        } catch (HttpClientErrorException.NotFound e) {
+            Notification.show("No such order has been made.");
+        }
+        updateList();
     }
 
     private void orderProduct(SaveEvent evt) {
@@ -118,13 +143,20 @@ public class ProductView extends View<ProductDTO, ProductCreateDTO> {
     private void configureGrid() {
         grid.addClassName("product-grid");
         grid.setSizeFull();
-        grid.setColumns("id", "name", "price");
+        grid.setColumns("id", "name");
+        grid.addColumn(product -> NumberFormat.getIntegerInstance().format(product.getPrice()))
+                .setHeader("Price");
         grid.addColumn(product -> product.getOrdersIds()
                 .stream()
                 .map(c -> {
                     CustomerDTO customer = customerResource.findById(c);
                     return customer.getFirstName() + " " + customer.getLastName();
                 })
+                .collect(Collectors.groupingBy(
+                        Function.identity(), Collectors.counting()
+                )).entrySet()
+                .stream()
+                .map(c -> c.getKey() + ": " + c.getValue())
                 .collect(Collectors.joining(", ")))
         .setHeader("Orders");
 
@@ -145,6 +177,7 @@ public class ProductView extends View<ProductDTO, ProductCreateDTO> {
         if (product == null)
             closeUpdateEditor();
         else {
+            updateForm.setProduct(product);
             updateForm.setVisible(true);
             addClassName("editing");
         }

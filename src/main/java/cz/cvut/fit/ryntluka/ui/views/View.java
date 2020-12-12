@@ -1,6 +1,5 @@
 package cz.cvut.fit.ryntluka.ui.views;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -21,6 +20,7 @@ public abstract class View<DTO, CreateDTO> extends VerticalLayout {
 
     TextField filterName = new TextField();
     TextField filterId = new TextField();
+    protected Button addEntity = new Button("Add " + getName());
 
     protected View(Resource<DTO, CreateDTO> mainResource) {
         this.mainResource = mainResource;
@@ -29,7 +29,15 @@ public abstract class View<DTO, CreateDTO> extends VerticalLayout {
     }
 
     protected void createEntity(SaveEvent evt) {
-        mainResource.create(getCreateDTO(evt.getEntity()));
+        try {
+            mainResource.create(getCreateDTO(evt.getEntity()));
+        }
+        catch (HttpClientErrorException.NotFound e) {
+            Notification.show(getName() + " has some entities inside missing.");
+        }
+        catch (NumberFormatException e) {
+            Notification.show("Invalid format!");
+        }
         updateList();
         closeCreateEditor();
     }
@@ -38,14 +46,19 @@ public abstract class View<DTO, CreateDTO> extends VerticalLayout {
         try {
             mainResource.delete(evt.getEntity().getId());
         } catch (HttpClientErrorException.Conflict e) {
-          Notification.show(getName() + "cannot be deleted as it has items in it");
+            Notification.show(getName() + " cannot be deleted as it has items in it.");
         }
         updateList();
         closeUpdateEditor();
     }
 
     protected void editEntity(SaveEvent evt) {
-        mainResource.update(getCreateDTO(evt.getEntity()), evt.getEntity().getId());
+        try {
+            mainResource.update(getCreateDTO(evt.getEntity()), evt.getEntity().getId());
+        }
+        catch (HttpClientErrorException.NotFound e) {
+            Notification.show(getName() + "not found");
+        }
         updateList();
         closeUpdateEditor();
     }
@@ -67,7 +80,7 @@ public abstract class View<DTO, CreateDTO> extends VerticalLayout {
     }
 
     protected HorizontalLayout createToolBar() {
-        Button addEntity = new Button("Add " + getName(), click -> {
+        addEntity.addClickListener(click -> {
             closeUpdateEditor();
             addEntity();
         });
@@ -83,16 +96,21 @@ public abstract class View<DTO, CreateDTO> extends VerticalLayout {
         filterName.setPlaceholder("Find by name...");
         filterName.setClearButtonVisible(true);
 
-        com.vaadin.flow.component.button.Button apply = new com.vaadin.flow.component.button.Button("Find");
+        Button apply = new com.vaadin.flow.component.button.Button("Find");
         apply.addThemeVariants(ButtonVariant.LUMO_ICON);
+        apply.addClickShortcut(Key.ENTER).listenOn(filterName);
         apply.addClickListener(e-> {
             String name = filterName.getValue();
             try {
-                setGridItems(mainResource.findByName(name));
+                List<DTO> res = mainResource.findByName(name);
+                if (res.isEmpty())
+                    Notification.show(getName() + " with name '" + name + "' was not found!");
+                else
+                    setGridItems(res);
             }
             catch (HttpClientErrorException.NotFound ex) {
                 setGridItems(java.util.List.of());
-                Notification.show(getName() + " not found!");
+                Notification.show(getName() + " with name '" + name + "' was not found!");
             }
         });
         return new HorizontalLayout(filterName, apply);
@@ -104,18 +122,19 @@ public abstract class View<DTO, CreateDTO> extends VerticalLayout {
 
         com.vaadin.flow.component.button.Button apply = new Button("Find");
         apply.addThemeVariants(ButtonVariant.LUMO_ICON);
+        apply.addClickShortcut(Key.ENTER).listenOn(filterId);
         apply.addClickListener(e -> {
+            int id = 0;
             try {
-                int id = Integer.parseInt(filterId.getValue());
+                id = Integer.parseInt(filterId.getValue());
                 setGridItems(mainResource.findById(id));
             }
             catch (NumberFormatException ex) {
-                setGridItems(java.util.List.of());
                 Notification.show("Invalid input format!");
             }
             catch (HttpClientErrorException.NotFound ex) {
                 setGridItems(List.of());
-                Notification.show(getName() + " not found!");
+                Notification.show(getName() + " with id '" + id + "' was not found!");
             }
         });
         return new HorizontalLayout(filterId, apply);
