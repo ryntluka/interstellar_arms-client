@@ -2,11 +2,12 @@ package cz.cvut.fit.ryntluka.ui.form.product;
 
 import com.vaadin.flow.component.textfield.TextField;
 import cz.cvut.fit.ryntluka.dto.ProductDTO;
+import cz.cvut.fit.ryntluka.ui.form.CreateForm;
 import cz.cvut.fit.ryntluka.ui.form.FormComponent;
 
 import java.util.List;
 
-public class ProductCreateForm extends FormComponent<ProductDTO> {
+public class ProductCreateForm extends CreateForm<ProductDTO> {
 
     protected TextField id = new TextField("Id");
     protected TextField price = new TextField("Price");

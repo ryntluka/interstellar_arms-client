@@ -29,21 +29,18 @@ import static cz.cvut.fit.ryntluka.dto.CustomerCreateDTO.toCreateDTO;
 @PageTitle("Customers | Interstelar Arms Corporation")
 public class CustomersView extends View<CustomerDTO, CustomerCreateDTO> {
 
-    private final CustomerUpdateForm updateForm;
-    private final CustomerCreateForm createForm;
+
     Grid<CustomerDTO> grid = new Grid<>(CustomerDTO.class);
 
     private final PlanetResource planetResource;
 
     public CustomersView(@Autowired CustomerResource customerResource, PlanetResource planetResource) {
-        super(customerResource);
+        super(customerResource,
+                new CustomerUpdateForm(planetResource.findAll()),
+                new CustomerCreateForm(planetResource.findAll()));
         this.planetResource = planetResource;
-        updateForm = new CustomerUpdateForm(planetResource.findAll());
-        createForm = new CustomerCreateForm(planetResource.findAll());
 
         configureGrid();
-
-        configureForms();
 
         Div content = new Div(grid, updateForm, createForm);
         content.addClassName("content");
@@ -55,37 +52,6 @@ public class CustomersView extends View<CustomerDTO, CustomerCreateDTO> {
         updateList();
     }
 
-    protected void closeUpdateEditor() {
-        updateForm.setCustomer(
-                new CustomerDTO(0, "", "", "", 0),
-                new PlanetDTO(0, "", new Point(0,0), "", ""));
-        updateForm.setVisible(false);
-        removeClassName("editing");
-    }
-
-    @Override
-    CustomerCreateDTO getCreateDTO(ModelDTO entity) {
-        return toCreateDTO((CustomerDTO) entity);
-    }
-
-    protected void closeCreateEditor() {
-        createForm.setCustomer(
-                new CustomerDTO(0, "", "", "", 0),
-                new PlanetDTO(0, "", new Point(0,0), "", ""));
-        createForm.setVisible(false);
-        removeClassName("editing");
-    }
-
-    private void configureForms() {
-        updateForm.addListener(SaveEvent.class, this::editEntity);
-        updateForm.addListener(DeleteEvent.class, this::deleteEntity);
-        updateForm.addListener(CloseEvent.class, e -> closeUpdateEditor());
-
-        createForm.addListener(SaveEvent.class, this::createEntity);
-        createForm.addListener(CloseEvent.class, e -> closeCreateEditor());
-    }
-
-
     private void configureGrid() {
         grid.addClassName("customer-grid");
         grid.setSizeFull();
@@ -94,24 +60,13 @@ public class CustomersView extends View<CustomerDTO, CustomerCreateDTO> {
 
         grid.getColumns().forEach(col->col.setAutoWidth(true));
 
-        grid.asSingleSelect().addValueChangeListener(event -> updateCustomer(event.getValue()));
+        grid.asSingleSelect().addValueChangeListener(event -> updateEntity(event.getValue()));
     }
 
     protected void addEntity() {
         grid.asSingleSelect().clear();
         createForm.setVisible(true);
         addClassName("editing");
-    }
-
-    private void updateCustomer(CustomerDTO customer) {
-        closeCreateEditor();
-        if (customer == null)
-            closeUpdateEditor();
-        else {
-            updateForm.setCustomer(customer, planetResource.findById(customer.getPlanetId()));
-            updateForm.setVisible(true);
-            addClassName("editing");
-        }
     }
 
     @Override
@@ -127,5 +82,28 @@ public class CustomersView extends View<CustomerDTO, CustomerCreateDTO> {
     @Override
     String getName() {
         return "customer";
+    }
+
+    @Override
+    void setUpdateFormEntity(CustomerDTO customer) {
+        if (customer == null)
+            ((CustomerUpdateForm)updateForm).setCustomer(new CustomerDTO(0, "", "", "", 0),
+                    new PlanetDTO(0, "", new Point(0,0), "", ""));
+        else
+            ((CustomerUpdateForm)updateForm).setCustomer(customer, planetResource.findById(customer.getPlanetId()));
+    }
+
+    @Override
+    void setCreateFormEntity(CustomerDTO customer) {
+        if (customer == null)
+            ((CustomerCreateForm)createForm).setCustomer(new CustomerDTO(0, "", "", "", 0),
+                    new PlanetDTO(0, "", new Point(0,0), "", ""));
+        else
+            ((CustomerCreateForm)createForm).setCustomer(customer, planetResource.findById(customer.getPlanetId()));
+    }
+
+    @Override
+    CustomerCreateDTO getCreateDTO(CustomerDTO entity) {
+        return toCreateDTO(entity);
     }
 }

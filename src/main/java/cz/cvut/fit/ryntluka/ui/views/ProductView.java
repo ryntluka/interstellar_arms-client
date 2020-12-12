@@ -1,17 +1,11 @@
 package cz.cvut.fit.ryntluka.ui.views;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import cz.cvut.fit.ryntluka.dto.*;
@@ -21,13 +15,15 @@ import cz.cvut.fit.ryntluka.ui.MainLayout;
 import cz.cvut.fit.ryntluka.ui.events.CloseEvent;
 import cz.cvut.fit.ryntluka.ui.events.DeleteEvent;
 import cz.cvut.fit.ryntluka.ui.events.SaveEvent;
+import cz.cvut.fit.ryntluka.ui.form.planet.PlanetUpdateForm;
 import cz.cvut.fit.ryntluka.ui.form.product.OrderForm;
 import cz.cvut.fit.ryntluka.ui.form.product.ProductCreateForm;
 import cz.cvut.fit.ryntluka.ui.form.product.ProductUpdateForm;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.client.HttpClientErrorException;
 
+import java.awt.*;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cz.cvut.fit.ryntluka.dto.ProductCreateDTO.toCreateDTO;
@@ -37,23 +33,21 @@ import static cz.cvut.fit.ryntluka.dto.ProductCreateDTO.toCreateDTO;
 @PageTitle("Products | Interstelar Arms Corporation")
 public class ProductView extends View<ProductDTO, ProductCreateDTO> {
 
-    private final ProductUpdateForm updateForm;
-    private final ProductCreateForm createForm;
     private final OrderForm orderForm;
     Grid<ProductDTO> grid = new Grid<>(ProductDTO.class);
 
     private final CustomerResource customerResource;
 
     public ProductView(@Autowired ProductResource productResource, CustomerResource customerResource) {
-        super(productResource);
+        super(productResource,
+                new ProductUpdateForm(),
+                new ProductCreateForm());
         this.customerResource = customerResource;
         orderForm = new OrderForm(customerResource.findAll(), productResource.findAll());
-        updateForm = new ProductUpdateForm();
-        createForm = new ProductCreateForm();
 
         configureGrid();
 
-        configureForms();
+        orderForm.addListener(SaveEvent.class, this::orderProduct);
 
         Div content = new Div(grid, updateForm, createForm, orderForm);
         content.addClassName("content");
@@ -71,16 +65,6 @@ public class ProductView extends View<ProductDTO, ProductCreateDTO> {
         closeOrderEditor();
     }
 
-    private void configureForms() {
-        updateForm.addListener(SaveEvent.class, this::editEntity);
-        updateForm.addListener(DeleteEvent.class, this::deleteEntity);
-        updateForm.addListener(CloseEvent.class, e -> closeUpdateEditor());
-
-        createForm.addListener(SaveEvent.class, this::createEntity);
-        createForm.addListener(CloseEvent.class, e -> closeCreateEditor());
-
-        orderForm.addListener(SaveEvent.class, this::orderProduct);
-    }
 
     private void openOrder() {
         closeCreateEditor();
@@ -90,24 +74,10 @@ public class ProductView extends View<ProductDTO, ProductCreateDTO> {
         addClassName("editing");
     }
 
-    private void orderProduct(SaveEvent evt) {
-        OrderDTO orderDTO = (OrderDTO) evt.getEntity();
+    private void orderProduct(SaveEvent<OrderDTO> evt) {
+        OrderDTO orderDTO = evt.getEntity();
         ((ProductResource)getMainResource()).order(orderDTO.getCustomerId(), orderDTO.getProductId());
         updateList();
-    }
-
-    protected void closeUpdateEditor() {
-        updateForm.setProduct(
-                new ProductDTO(0, 0, "", List.of()));
-        updateForm.setVisible(false);
-        removeClassName("editing");
-    }
-
-    protected void closeCreateEditor() {
-        createForm.setProduct(
-                new ProductDTO(0, 0, "", List.of()));
-        createForm.setVisible(false);
-        removeClassName("editing");
     }
 
     private void closeOrderEditor() {
@@ -161,12 +131,28 @@ public class ProductView extends View<ProductDTO, ProductCreateDTO> {
     }
 
     @Override
-    ProductCreateDTO getCreateDTO(ModelDTO entity) {
-        return toCreateDTO((ProductDTO) entity);
+    String getName() {
+        return "product";
     }
 
     @Override
-    String getName() {
-        return "product";
+    ProductCreateDTO getCreateDTO(ProductDTO entity) {
+        return toCreateDTO(entity);
+    }
+
+    @Override
+    void setUpdateFormEntity(ProductDTO dto) {
+        ((ProductUpdateForm) updateForm)
+                .setProduct(Objects.requireNonNullElseGet(
+                        dto, () -> new ProductDTO(0, 0, "", List.of()))
+                );
+    }
+
+    @Override
+    void setCreateFormEntity(ProductDTO dto) {
+        ((ProductCreateForm) createForm)
+                .setProduct(Objects.requireNonNullElseGet(
+                        dto, () -> new ProductDTO(0, 0, "", List.of()))
+                );
     }
 }
