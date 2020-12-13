@@ -4,7 +4,6 @@ stages:
 build image:
   image: docker:latest
   stage: build
-  services:
-    - docker:dind
   script:
-    - docker build .
+    - chmod a+x ./gradlew
+    - ./gradlew
