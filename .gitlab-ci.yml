@@ -2,9 +2,8 @@ stages:
   - build
 
 build image:
-  image: docker:latest
+  image: java:8
   stage: build
-  services:
-    - docker:dind
   script:
-    - docker build .
+    - chmod a+x ./gradlew
+    - ./gradlew
